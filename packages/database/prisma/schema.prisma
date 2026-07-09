@@ -1,8 +1,11 @@
-// ============================================
-// Brunch Bouaké PMS — Prisma Schema
-// ============================================
-// Modèle de données initial (scaffolding uniquement)
-// La logique métier sera ajoutée après validation du scaffolding
+// ============================================================
+// Brunch Bouaké PMS — Prisma Schema COMPLET
+// ============================================================
+// Conforme à architecture.md §3 — toutes les entités MVP
+// Conventions : tables snake_case pluriel, colonnes snake_case,
+//               champs Prisma camelCase
+// MySQL 8.x / InnoDB / utf8mb4_unicode_ci
+// ============================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -13,17 +16,546 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ── Placeholder : User (auth de base) ──────
+// ============================================================
+// §3.1 — UTILISATEURS & SÉCURITÉ
+// ============================================================
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  role      String   @default("receptionist")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             Int       @id @default(autoincrement())
+  email          String    @unique @db.VarChar(255)
+  passwordHash   String    @map("password_hash") @db.VarChar(255)
+  firstName      String    @map("first_name") @db.VarChar(100)
+  lastName       String    @map("last_name") @db.VarChar(100)
+  roleId         Int       @map("role_id")
+  status         UserStatus @default(ACTIVE)
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  role                    Role                       @relation(fields: [roleId], references: [id])
+  auditLogs               AuditLog[]
+  reservationsCreated     Reservation[]              @relation("ReservationCreatedBy")
+  reservationStatusHistory ReservationStatusHistory[]
+  housekeepingAssigned    HousekeepingTask[]         @relation("HousekeepingAssignedTo")
+  housekeepingReported    HousekeepingTask[]         @relation("HousekeepingReportedBy")
+  maintenanceAssigned     MaintenanceIssue[]         @relation("MaintenanceAssignedTo")
+  maintenanceReported     MaintenanceIssue[]         @relation("MaintenanceReportedBy")
 
   @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+
+  @@map("user_status")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  /// Code action ex: reservation.create, billing.refund, payment.delete
+  code        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  module      String   @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// Append-only — jamais modifié ni supprimé (voir §7 règle métier)
+model AuditLog {
+  id           BigInt   @id @default(autoincrement())
+  userId       Int?     @map("user_id")
+  action       String   @db.VarChar(100)
+  /// Nom de l'entité cible (ex: Reservation, Folio, User)
+  targetEntity String   @map("target_entity") @db.VarChar(100)
+  targetId     String   @map("target_id") @db.VarChar(100)
+  valueBefore  Json?    @map("value_before")
+  valueAfter   Json?    @map("value_after")
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([targetEntity, targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// §3.2 — CHAMBRES & INVENTAIRE
+// ============================================================
+
+model RoomType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  capacity    Int      @default(2)
+  baseRate    Decimal  @map("base_rate") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  rooms       Room[]
+  rateplanDays RateplanDay[]
+
+  @@map("room_types")
+}
+
+/// §7.1 — Les 3 statuts sont INDÉPENDANTS, non exclusifs
+model Room {
+  id               Int              @id @default(autoincrement())
+  number           String           @unique @db.VarChar(10)
+  roomTypeId       Int              @map("room_type_id")
+  floor            Int
+  /// Occupation : libre / occupée
+  occupancyStatus  OccupancyStatus  @default(VACANT) @map("occupancy_status")
+  /// Propreté : propre / sale / inspection
+  cleanlinessStatus CleanlinessStatus @default(CLEAN) @map("cleanliness_status")
+  /// Technique : opérationnelle / maintenance
+  technicalStatus  TechnicalStatus  @default(OPERATIONAL) @map("technical_status")
+  notes            String?          @db.Text
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  roomType          RoomType           @relation(fields: [roomTypeId], references: [id])
+  reservations      Reservation[]
+  housekeepingTasks HousekeepingTask[]
+  maintenanceIssues MaintenanceIssue[]
+
+  @@map("rooms")
+}
+
+enum OccupancyStatus {
+  VACANT
+  OCCUPIED
+
+  @@map("occupancy_status")
+}
+
+enum CleanlinessStatus {
+  CLEAN
+  DIRTY
+  INSPECTION
+
+  @@map("cleanliness_status")
+}
+
+enum TechnicalStatus {
+  OPERATIONAL
+  MAINTENANCE
+
+  @@map("technical_status")
+}
+
+// ============================================================
+// §3.3 — CLIENTS (CRM léger)
+// ============================================================
+
+model Guest {
+  id             Int       @id @default(autoincrement())
+  firstName      String    @map("first_name") @db.VarChar(100)
+  lastName       String    @map("last_name") @db.VarChar(100)
+  phone          String?   @db.VarChar(30)
+  email          String?   @db.VarChar(255)
+  idType         IdType?   @map("id_type")
+  idNumber       String?   @map("id_number") @db.VarChar(100)
+  nationality    String?   @db.VarChar(100)
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  documents    GuestDocument[]
+  reservations Reservation[]
+
+  @@index([lastName, firstName])
+  @@index([phone])
+  @@map("guests")
+}
+
+enum IdType {
+  CNI
+  PASSPORT
+  RESIDENCE_PERMIT
+  OTHER
+
+  @@map("id_type")
+}
+
+/// Scan CNI/passeport — url_stockage pointe vers S3-compatible, hors base
+model GuestDocument {
+  id         Int      @id @default(autoincrement())
+  guestId    Int      @map("guest_id")
+  type       IdType
+  storageUrl String   @map("storage_url") @db.VarChar(1000)
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@map("guest_documents")
+}
+
+// ============================================================
+// §3.4 — RÉSERVATIONS
+// ============================================================
+
+model Reservation {
+  id              Int               @id @default(autoincrement())
+  guestId         Int               @map("guest_id")
+  /// Nullable jusqu'à l'assignation d'une chambre
+  roomId          Int?              @map("room_id")
+  checkInDate     DateTime          @map("check_in_date") @db.Date
+  checkOutDate    DateTime          @map("check_out_date") @db.Date
+  status          ReservationStatus @default(PENDING)
+  source          BookingSource     @default(DIRECT)
+  agreedRate      Decimal           @map("agreed_rate") @db.Decimal(10, 2)
+  adultsCount     Int               @default(1) @map("adults_count")
+  childrenCount   Int               @default(0) @map("children_count")
+  specialRequests String?           @map("special_requests") @db.Text
+  createdById     Int               @map("created_by")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  guest          Guest                    @relation(fields: [guestId], references: [id])
+  room           Room?                    @relation(fields: [roomId], references: [id])
+  createdBy      User                     @relation("ReservationCreatedBy", fields: [createdById], references: [id])
+  statusHistory  ReservationStatusHistory[]
+  folio          Folio?
+  deposits       Deposit[]
+
+  @@index([roomId, checkInDate, checkOutDate])
+  @@index([guestId])
+  @@index([status])
+  @@map("reservations")
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  NO_SHOW
+
+  @@map("reservation_status")
+}
+
+enum BookingSource {
+  DIRECT
+  OTA
+  PHONE
+  WALK_IN
+
+  @@map("booking_source")
+}
+
+/// Historique explicite distinct de l'audit log générique (§3.4 architecture.md)
+model ReservationStatusHistory {
+  id            Int               @id @default(autoincrement())
+  reservationId Int               @map("reservation_id")
+  fromStatus    ReservationStatus @map("from_status")
+  toStatus      ReservationStatus @map("to_status")
+  reason        String?           @db.VarChar(500)
+  changedById   Int               @map("changed_by")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  changedBy   User        @relation(fields: [changedById], references: [id])
+
+  @@index([reservationId])
+  @@map("reservation_status_history")
+}
+
+// ============================================================
+// §3.5 — HOUSEKEEPING & MAINTENANCE
+// ============================================================
+
+model HousekeepingTask {
+  id           Int               @id @default(autoincrement())
+  roomId       Int               @map("room_id")
+  type         HousekeepingType
+  status       HousekeepingStatus @default(TODO)
+  priority     TaskPriority      @default(NORMAL)
+  assignedToId Int?              @map("assigned_to")
+  reportedById Int               @map("reported_by")
+  notes        String?           @db.Text
+  scheduledAt  DateTime?         @map("scheduled_at")
+  completedAt  DateTime?         @map("completed_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  room       Room  @relation(fields: [roomId], references: [id])
+  assignedTo User? @relation("HousekeepingAssignedTo", fields: [assignedToId], references: [id])
+  reportedBy User  @relation("HousekeepingReportedBy", fields: [reportedById], references: [id])
+
+  @@index([roomId, status])
+  @@index([assignedToId, status])
+  @@map("housekeeping_tasks")
+}
+
+enum HousekeepingType {
+  CHECKOUT_CLEAN
+  STAYOVER_CLEAN
+  INSPECTION
+  DEEP_CLEAN
+
+  @@map("housekeeping_type")
+}
+
+enum HousekeepingStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+
+  @@map("housekeeping_status")
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+
+  @@map("task_priority")
+}
+
+/// Un MaintenanceIssue ouvert force Room.technicalStatus = MAINTENANCE (§3.5)
+model MaintenanceIssue {
+  id           Int               @id @default(autoincrement())
+  roomId       Int               @map("room_id")
+  description  String            @db.Text
+  severity     IssueSeverity     @default(MEDIUM)
+  status       MaintenanceStatus @default(OPEN)
+  reportedById Int               @map("reported_by")
+  assignedToId Int?              @map("assigned_to")
+  resolvedAt   DateTime?         @map("resolved_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  room       Room  @relation(fields: [roomId], references: [id])
+  reportedBy User  @relation("MaintenanceReportedBy", fields: [reportedById], references: [id])
+  assignedTo User? @relation("MaintenanceAssignedTo", fields: [assignedToId], references: [id])
+
+  @@index([roomId, status])
+  @@map("maintenance_issues")
+}
+
+enum IssueSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("issue_severity")
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+
+  @@map("maintenance_status")
+}
+
+// ============================================================
+// §3.6 — FACTURATION & PAIEMENTS
+// ============================================================
+
+/// Folio = note client ouverte pendant tout le séjour (standard PMS)
+/// §7.4 : immuable après clôture — toute correction = écriture d'ajustement
+model Folio {
+  id            Int         @id @default(autoincrement())
+  reservationId Int         @unique @map("reservation_id")
+  status        FolioStatus @default(OPEN)
+  /// Solde restant dû (snapshot calculé, toujours recomputable depuis les lignes)
+  balanceDue    Decimal     @default(0) @map("balance_due") @db.Decimal(10, 2)
+  closedAt      DateTime?   @map("closed_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  lines       FolioLine[]
+  payments    Payment[]
+  invoice     Invoice?
+
+  @@map("folios")
+}
+
+enum FolioStatus {
+  OPEN
+  CLOSED
+
+  @@map("folio_status")
+}
+
+model FolioLine {
+  id          Int          @id @default(autoincrement())
+  folioId     Int          @map("folio_id")
+  type        FolioLineType
+  description String       @db.VarChar(500)
+  amount      Decimal      @db.Decimal(10, 2)
+  quantity    Int          @default(1)
+  unitPrice   Decimal      @map("unit_price") @db.Decimal(10, 2)
+  /// Négatif si ajustement/avoir (correction post-clôture via écriture comptable)
+  isAdjustment Boolean     @default(false) @map("is_adjustment")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  folio Folio @relation(fields: [folioId], references: [id])
+
+  @@index([folioId])
+  @@map("folio_lines")
+}
+
+enum FolioLineType {
+  ACCOMMODATION
+  SERVICE
+  TAX
+  PENALTY
+  DISCOUNT
+  ADJUSTMENT
+
+  @@map("folio_line_type")
+}
+
+model Deposit {
+  id            Int           @id @default(autoincrement())
+  reservationId Int           @map("reservation_id")
+  amount        Decimal       @db.Decimal(10, 2)
+  status        DepositStatus @default(HELD)
+  method        PaymentMethod
+  notes         String?       @db.VarChar(500)
+  paidAt        DateTime?     @map("paid_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  @@index([reservationId])
+  @@map("deposits")
+}
+
+enum DepositStatus {
+  HELD
+  CASHED
+  REFUNDED
+
+  @@map("deposit_status")
+}
+
+model Payment {
+  id        Int           @id @default(autoincrement())
+  folioId   Int           @map("folio_id")
+  amount    Decimal       @db.Decimal(10, 2)
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+  reference String?       @db.VarChar(255)
+  paidAt    DateTime?     @map("paid_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  folio Folio @relation(fields: [folioId], references: [id])
+
+  @@index([folioId])
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CASH
+  MOBILE_MONEY
+  CARD
+  BANK_TRANSFER
+  OTHER
+
+  @@map("payment_method")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+model Invoice {
+  id          Int      @id @default(autoincrement())
+  folioId     Int      @unique @map("folio_id")
+  /// Numéro légal séquentiel (ex: FAC-2026-00001)
+  legalNumber String   @unique @map("legal_number") @db.VarChar(50)
+  issuedAt    DateTime @map("issued_at")
+  pdfUrl      String?  @map("pdf_url") @db.VarChar(1000)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  folio Folio @relation(fields: [folioId], references: [id])
+
+  @@map("invoices")
+}
+
+// ============================================================
+// §3.7 — DISPONIBILITÉ & TARIFICATION (base channel manager)
+// ============================================================
+
+/// Table journalière — permet la synchronisation OTA sans refonte (§2 principe directeur)
+model RateplanDay {
+  id                Int      @id @default(autoincrement())
+  roomTypeId        Int      @map("room_type_id")
+  date              DateTime @db.Date
+  rate              Decimal  @db.Decimal(10, 2)
+  remainingCapacity Int      @default(0) @map("remaining_capacity")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [id])
+
+  @@unique([roomTypeId, date])
+  @@index([date])
+  @@map("rateplan_days")
+}
+
+// ============================================================
+// SETTINGS — Configuration établissement (module settings)
+// ============================================================
+
+model SystemSettings {
+  id        Int      @id @default(1)
+  /// Données JSON : nom établissement, adresse, téléphone, logo, devise, etc.
+  data      Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }
