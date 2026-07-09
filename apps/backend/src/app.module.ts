@@ -18,9 +18,12 @@ import { ReservationsModule } from './modules/reservations/reservations.module';
 import { HousekeepingModule } from './modules/housekeeping/housekeeping.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { ReportingModule } from './modules/reporting/reporting.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '../../.env',
@@ -37,6 +40,7 @@ import { BillingModule } from './modules/billing/billing.module';
     HousekeepingModule,
     MaintenanceModule,
     BillingModule,
+    ReportingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

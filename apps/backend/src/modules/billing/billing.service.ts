@@ -36,6 +36,17 @@ export class BillingService {
 
       if (data.type === 'ACCOMMODATION') {
         unitPrice = parseFloat(folio.reservation.agreedRate.toString());
+      } else if (data.type === 'TAX') {
+        const settings = await tx.systemSettings.findUnique({ where: { id: 1 } });
+        if (settings) {
+          const taxRate = parseFloat(settings.touristTaxRate.toString());
+          const checkIn = new Date(folio.reservation.checkInDate);
+          const checkOut = new Date(folio.reservation.checkOutDate);
+          let nights = Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+          if (nights < 1) nights = 1; // Minimum 1 night for tax purposes usually
+          unitPrice = taxRate * folio.reservation.adultsCount * nights;
+          quantity = 1; // Force quantity to 1 since we calculated the total tax
+        }
       }
       
       let amount = unitPrice * quantity;

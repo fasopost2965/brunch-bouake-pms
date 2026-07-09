@@ -67,6 +67,8 @@ model Role {
   @@map("roles")
 }
 
+
+
 model Permission {
   id          Int      @id @default(autoincrement())
   /// Code action ex: reservation.create, billing.refund, payment.delete
@@ -543,6 +545,22 @@ model Invoice {
 }
 
 // ============================================================
+// §3.7 — REPORTING & KPI
+// ============================================================
+
+model DailySnapshot {
+  date                 DateTime @id @db.Date
+  occupiedRooms        Int      @map("occupied_rooms")
+  availableRooms       Int      @map("available_rooms")
+  accommodationRevenue Decimal  @map("accommodation_revenue") @db.Decimal(10, 2)
+  adr                  Decimal  @db.Decimal(10, 2)
+  revPar               Decimal  @map("rev_par") @db.Decimal(10, 2)
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("daily_snapshots")
+}
+
+// ============================================================
 // §3.7 — DISPONIBILITÉ & TARIFICATION (base channel manager)
 // ============================================================
 
@@ -568,10 +586,11 @@ model RateplanDay {
 // ============================================================
 
 model SystemSettings {
-  id        Int      @id @default(1)
+  id             Int      @id @default(1)
   /// Données JSON : nom établissement, adresse, téléphone, logo, devise, etc.
-  data      Json
-  updatedAt DateTime @updatedAt @map("updated_at")
+  data           Json
+  touristTaxRate Decimal  @default(1000) @map("tourist_tax_rate") @db.Decimal(10, 2)
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
 }
