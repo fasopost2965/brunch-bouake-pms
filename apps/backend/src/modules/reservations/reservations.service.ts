@@ -79,6 +79,12 @@ export class ReservationsService {
         data: {
           ...data,
           createdById: adminId,
+          folios: {
+            create: {
+              type: 'MAIN',
+              status: 'OPEN',
+            },
+          },
         },
       });
 

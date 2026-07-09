@@ -21,4 +21,9 @@ export class RoomsController {
   async getRoomStatuses() {
     return this.roomsService.getRoomStatuses();
   }
+
+  @Get('kpi')
+  async getKpi() {
+    return this.roomsService.getKpi();
+  }
 }

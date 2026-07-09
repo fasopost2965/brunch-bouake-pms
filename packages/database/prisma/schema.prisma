@@ -256,7 +256,7 @@ model Reservation {
   room           Room?                    @relation(fields: [roomId], references: [id])
   createdBy      User                     @relation("ReservationCreatedBy", fields: [createdById], references: [id])
   statusHistory  ReservationStatusHistory[]
-  folio          Folio?
+  folios         Folio[]
   deposits       Deposit[]
 
   @@index([roomId, checkInDate, checkOutDate])
@@ -402,7 +402,9 @@ enum MaintenanceStatus {
 /// §7.4 : immuable après clôture — toute correction = écriture d'ajustement
 model Folio {
   id            Int         @id @default(autoincrement())
-  reservationId Int         @unique @map("reservation_id")
+  reservationId Int         @map("reservation_id")
+  type          FolioType   @default(MAIN)
+  parentFolioId Int?        @map("parent_folio_id")
   status        FolioStatus @default(OPEN)
   /// Solde restant dû (snapshot calculé, toujours recomputable depuis les lignes)
   balanceDue    Decimal     @default(0) @map("balance_due") @db.Decimal(10, 2)
@@ -411,11 +413,22 @@ model Folio {
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
   reservation Reservation @relation(fields: [reservationId], references: [id])
+  parentFolio Folio?      @relation("FolioToAdjustment", fields: [parentFolioId], references: [id])
+  adjustments Folio[]     @relation("FolioToAdjustment")
   lines       FolioLine[]
   payments    Payment[]
   invoice     Invoice?
 
+  @@index([reservationId])
+  @@index([parentFolioId])
   @@map("folios")
+}
+
+enum FolioType {
+  MAIN
+  ADJUSTMENT
+
+  @@map("folio_type")
 }
 
 enum FolioStatus {

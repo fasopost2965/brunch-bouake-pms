@@ -17,6 +17,7 @@ import { GuestsModule } from './modules/guests/guests.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { HousekeepingModule } from './modules/housekeeping/housekeeping.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
     ReservationsModule,
     HousekeepingModule,
     MaintenanceModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
