@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersRolesService } from '../users-roles/users-roles.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class AuthService {
     @Inject(forwardRef(() => UsersRolesService))
     private usersRolesService: UsersRolesService,
     private jwtService: JwtService,
+    private prisma: PrismaService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -22,9 +24,20 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { email: user.email, sub: user.id, role: user.roleId };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    const salt = await bcrypt.genSalt();
+    const refreshTokenHash = await bcrypt.hash(refreshToken, salt);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshTokenHash, lastLoginAt: new Date() },
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }), // Refresh token
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 
@@ -32,10 +45,21 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken);
       const user = await this.usersRolesService.findUserByEmail(payload.email);
-      if (!user) throw new UnauthorizedException();
+      if (!user || !user.refreshTokenHash) throw new UnauthorizedException();
+
+      const isMatch = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+      if (!isMatch) throw new UnauthorizedException('Invalid refresh token');
+
       return this.login(user);
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async logout(userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshTokenHash: null },
+    });
   }
 }

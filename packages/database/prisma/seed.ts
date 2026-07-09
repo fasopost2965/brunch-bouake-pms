@@ -25,6 +25,32 @@ async function main() {
     roleMap[role.name] = role.id;
   }
 
+  console.log('Seeding permissions...');
+  const permUsersCreate = await prisma.permission.upsert({
+    where: { code: 'users.create' },
+    update: {},
+    create: {
+      code: 'users.create',
+      description: 'Créer de nouveaux utilisateurs',
+      module: 'users',
+    },
+  });
+
+  // Link permission to Admin role
+  await prisma.rolePermission.upsert({
+    where: {
+      roleId_permissionId: {
+        roleId: roleMap['Admin'],
+        permissionId: permUsersCreate.id,
+      },
+    },
+    update: {},
+    create: {
+      roleId: roleMap['Admin'],
+      permissionId: permUsersCreate.id,
+    },
+  });
+
   console.log('Seeding initial admin user...');
   const salt = await bcrypt.genSalt();
   const passwordHash = await bcrypt.hash('admin_pass_2026', salt);

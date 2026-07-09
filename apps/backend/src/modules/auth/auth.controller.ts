@@ -1,5 +1,6 @@
-import { Controller, Post, Body, UnauthorizedException, Request } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Request, UseGuards, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -20,5 +21,13 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token required');
     }
     return this.authService.refresh(body.refresh_token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(200)
+  async logout(@Request() req: any) {
+    await this.authService.logout(req.user.sub);
+    return { message: 'Logged out successfully' };
   }
 }
