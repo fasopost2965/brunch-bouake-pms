@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, ParseIntPipe, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param, ParseIntPipe, UseGuards, Request } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -28,7 +28,14 @@ export class ReservationsController {
   @Put(':id')
   @RequirePermission('reservations.write')
   async updateReservation(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
-    return this.reservationsService.updateReservation(id, body, req.user.sub);
+    const { taxExempt, taxExemptReason, ...updateData } = body;
+    return this.reservationsService.updateReservation(id, updateData, req.user.sub);
+  }
+
+  @Patch(':id/tax-exemption')
+  @RequirePermission('reservation.tax_exempt')
+  async updateTaxExemption(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    return this.reservationsService.updateTaxExemption(id, body.taxExempt, body.taxExemptReason, req.user.sub);
   }
 
   @Post(':id/checkin')

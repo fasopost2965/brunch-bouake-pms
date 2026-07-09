@@ -110,12 +110,6 @@ export class ReservationsService {
       const checkInDate = data.checkInDate ? new Date(data.checkInDate) : old.checkInDate;
       const checkOutDate = data.checkOutDate ? new Date(data.checkOutDate) : old.checkOutDate;
       const roomId = data.roomId !== undefined ? data.roomId : old.roomId;
-      const taxExempt = data.taxExempt !== undefined ? data.taxExempt : old.taxExempt;
-      const taxExemptReason = data.taxExemptReason !== undefined ? data.taxExemptReason : old.taxExemptReason;
-
-      if (taxExempt && !taxExemptReason) {
-        throw new BadRequestException('Un motif (taxExemptReason) est obligatoire lorsque la réservation est exemptée de taxe.');
-      }
 
       if (roomId) {
         await this.checkOverlap(tx, roomId, checkInDate, checkOutDate, id);
@@ -135,6 +129,90 @@ export class ReservationsService {
         oldValues: old,
         newValues: reservation,
       });
+      return reservation;
+    });
+  }
+
+  async updateTaxExemption(id: number, taxExempt: boolean, taxExemptReason: string, adminId: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const old = await tx.reservation.findUnique({ where: { id }, include: { folios: true } });
+      if (!old) throw new NotFoundException('Reservation not found');
+
+      if (taxExempt && (!taxExemptReason || taxExemptReason.trim() === '')) {
+        throw new BadRequestException('Un motif explicite et non vide est obligatoire pour accorder une exemption de taxe.');
+      }
+
+      // If no change, return early
+      if (old.taxExempt === taxExempt) {
+        return old;
+      }
+
+      const reservation = await tx.reservation.update({
+        where: { id },
+        data: {
+          taxExempt,
+          taxExemptReason: taxExempt ? taxExemptReason : null,
+        }
+      });
+
+      await this.auditLogService.logAction(tx, {
+        userId: adminId,
+        action: 'UPDATE_TAX_EXEMPTION',
+        entityType: 'Reservation',
+        entityId: reservation.id,
+        oldValues: { taxExempt: old.taxExempt, taxExemptReason: old.taxExemptReason },
+        newValues: { taxExempt, taxExemptReason: reservation.taxExemptReason },
+      });
+
+      // Handle existing TAX lines if taxExempt became true
+      if (taxExempt) {
+        for (const folio of old.folios) {
+          if (folio.status === 'OPEN') {
+            // Delete TAX lines from open folios
+            await tx.folioLine.deleteMany({
+              where: {
+                folioId: folio.id,
+                type: 'TAX'
+              }
+            });
+          } else if (folio.status === 'CLOSED') {
+            // Check if there are TAX lines in this closed folio
+            const taxLines = await tx.folioLine.findMany({
+              where: { folioId: folio.id, type: 'TAX' }
+            });
+
+            if (taxLines.length > 0) {
+              const totalTax = taxLines.reduce((acc, line) => acc + parseFloat(line.amount.toString()), 0);
+              
+              if (totalTax > 0) {
+                // Create an ADJUSTMENT folio automatically
+                const adjFolio = await tx.folio.create({
+                  data: {
+                    reservationId: id,
+                    parentFolioId: folio.id,
+                    type: 'ADJUSTMENT',
+                    status: 'OPEN',
+                  }
+                });
+                
+                // Add negative adjustment line
+                await tx.folioLine.create({
+                  data: {
+                    folioId: adjFolio.id,
+                    type: 'TAX',
+                    description: `Annulation taxe (Exemption accordée : ${taxExemptReason})`,
+                    unitPrice: -totalTax,
+                    quantity: 1,
+                    amount: -totalTax,
+                    isAdjustment: true
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+
       return reservation;
     });
   }
