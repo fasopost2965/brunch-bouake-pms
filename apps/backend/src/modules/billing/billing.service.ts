@@ -13,7 +13,7 @@ export class BillingService {
     const lines = await tx.folioLine.findMany({ where: { folioId } });
     const payments = await tx.payment.findMany({ where: { folioId, status: 'COMPLETED' } });
 
-    const totalCharges = lines.reduce((acc: number, line: any) => acc + (parseFloat(line.amount) * line.quantity), 0);
+    const totalCharges = lines.reduce((acc: number, line: any) => acc + parseFloat(line.amount), 0);
     const totalPaid = payments.reduce((acc: number, p: any) => acc + parseFloat(p.amount), 0);
     const balanceDue = totalCharges - totalPaid;
 
@@ -31,13 +31,14 @@ export class BillingService {
       if (!folio) throw new NotFoundException('Folio not found');
       if (folio.status === 'CLOSED') throw new ForbiddenException('Cannot modify a closed folio');
 
-      let unitPrice = data.unitPrice;
-      let amount = data.amount;
+      let unitPrice = parseFloat(data.unitPrice || 0);
+      let quantity = parseInt(data.quantity || 1, 10);
 
       if (data.type === 'ACCOMMODATION') {
-        unitPrice = folio.reservation.agreedRate;
-        amount = unitPrice;
+        unitPrice = parseFloat(folio.reservation.agreedRate.toString());
       }
+      
+      let amount = unitPrice * quantity;
 
       const line = await tx.folioLine.create({
         data: {
