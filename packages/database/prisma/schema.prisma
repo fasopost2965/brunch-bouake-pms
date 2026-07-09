@@ -312,6 +312,7 @@ model HousekeepingTask {
   type         HousekeepingType
   status       HousekeepingStatus @default(TODO)
   priority     TaskPriority      @default(NORMAL)
+  inspectionResult CleanlinessStatus? @map("inspection_result")
   assignedToId Int?              @map("assigned_to")
   reportedById Int               @map("reported_by")
   notes        String?           @db.Text
