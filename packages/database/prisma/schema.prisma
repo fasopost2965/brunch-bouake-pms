@@ -1,0 +1,29 @@
+// ============================================
+// Brunch Bouaké PMS — Prisma Schema
+// ============================================
+// Modèle de données initial (scaffolding uniquement)
+// La logique métier sera ajoutée après validation du scaffolding
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Placeholder : User (auth de base) ──────
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  role      String   @default("receptionist")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}

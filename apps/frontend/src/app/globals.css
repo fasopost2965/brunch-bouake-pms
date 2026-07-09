@@ -1,0 +1,93 @@
+/* ============================================
+   Brunch Bouaké PMS — Global Styles
+   Scaffolding placeholder — will be replaced
+   by the full design system
+   ============================================ */
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-card: #16161e;
+  --text-primary: #f0f0f5;
+  --text-secondary: #a0a0b0;
+  --accent: #d4a853;
+  --accent-hover: #e6bc6a;
+  --border: #2a2a3a;
+  --radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+  gap: 1rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+}
+
+.status-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-top: 2rem;
+  text-align: left;
+  width: 100%;
+  max-width: 500px;
+}
+
+.status-card h2 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.status-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-card li {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.status-card code {
+  background: rgba(212, 168, 83, 0.15);
+  color: var(--accent);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
