@@ -1,43 +1,65 @@
 :root {
-  /* Couleurs */
+  /* ── Brand colors ── */
   --color-brand-primary: #E8491D;
   --color-brand-primary-hover: #C93C15;
   --color-brand-primary-tint: #FBE6DE;
   --color-brand-chocolate: #3A1E17;
   --color-brand-chocolate-soft: #5C3A2E;
   --color-brand-gold: #D9A441;
+  --color-brand-gold-hover: #C4903A;
   --color-brand-gold-light: #F0D9A0;
 
+  /* ── Backgrounds ── */
   --color-bg-base: #FDFBF8;
+  --color-bg-page: #FDFBF8;        /* alias for components */
   --color-bg-subtle: #F5F0E9;
   --color-bg-dark: #231310;
+
+  /* ── Borders ── */
   --color-border: #E7DED2;
+  --color-border-default: #E7DED2; /* alias for components */
   --color-border-strong: #D8CBB8;
+
+  /* ── Text ── */
   --color-text-primary: #2B1A14;
   --color-text-secondary: #7A6A5C;
+  --color-text-disabled: #B8A99A;
   --color-text-inverse: #FDFBF8;
 
-  /* Feedback */
+  /* ── Status / Feedback ── */
+  --color-status-success: #3F7D5C;
+  --color-status-success-bg: #EAF4EF;
+  --color-status-error: #B23A2E;
+  --color-status-error-bg: #FCEAE8;
+  --color-status-warning: #9A6B1A;
+  --color-status-warning-bg: #FDF3DC;
+  --color-status-info: #5C7A8A;
+  --color-status-info-bg: #EBF2F6;
+  --color-status-neutral: #7A6A5C;
+  --color-status-neutral-bg: #F2EDE7;
+  /* legacy aliases */
   --color-feedback-success: #3F7D5C;
   --color-feedback-error: #B23A2E;
   --color-feedback-info: #5C7A8A;
 
-  /* Rayons & ombres */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* ── Shadows ── */
   --shadow-soft: 0 2px 8px rgba(43,26,20,0.04), 0 8px 24px rgba(43,26,20,0.06);
   --shadow-hover: 0 8px 20px rgba(43,26,20,0.08), 0 16px 40px rgba(43,26,20,0.10);
 
-  /* Espacement */
-  --space-1: 4px; 
-  --space-2: 8px; 
-  --space-3: 16px; 
+  /* ── Border radius ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* ── Spacing scale ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
   --space-4: 24px;
-  --space-5: 32px; 
-  --space-6: 48px; 
-  --space-7: 64px; 
-  --space-8: 96px; 
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 64px;
+  --space-8: 96px;
   --space-9: 128px;
 }
 

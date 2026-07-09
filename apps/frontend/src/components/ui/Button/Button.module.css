@@ -1,0 +1,112 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Variantes */
+.primary {
+  background-color: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+  box-shadow: 0 4px 14px rgba(232, 73, 29, 0.25);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--color-brand-primary-hover);
+  transform: translateY(-1px);
+}
+
+.primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(232, 73, 29, 0.25);
+}
+
+.primary:disabled {
+  background-color: #E7DED2;
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+
+.outline {
+  background-color: transparent;
+  border: 1.5px solid var(--color-brand-chocolate);
+  color: var(--color-brand-chocolate);
+}
+
+.outline:hover:not(:disabled) {
+  background-color: var(--color-brand-chocolate);
+  color: var(--color-text-inverse);
+}
+
+.outline:disabled {
+  border-color: #E7DED2;
+  color: var(--color-text-secondary);
+}
+
+.tertiary {
+  background-color: transparent;
+  color: var(--color-brand-chocolate);
+  padding: 8px 16px;
+  position: relative;
+}
+
+.tertiary::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-brand-chocolate);
+  transition: all 250ms ease;
+  transform: translateX(-50%);
+}
+
+.tertiary:hover:not(:disabled)::after {
+  width: calc(100% - 32px);
+}
+
+.tertiary:disabled {
+  color: var(--color-text-secondary);
+}
+
+.gold {
+  background-color: var(--color-brand-gold);
+  color: var(--color-brand-chocolate);
+}
+
+.gold:hover:not(:disabled) {
+  background-color: var(--color-brand-gold-light);
+}
+
+.gold:disabled {
+  background-color: #E7DED2;
+  color: var(--color-text-secondary);
+}
