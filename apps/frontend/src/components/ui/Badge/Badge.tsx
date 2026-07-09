@@ -12,25 +12,49 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   label?: string;
 }
 
+/*
+ * Mapping statut → variante couleur (source de vérité, décision étape 1)
+ *
+ * RÉSERVATION
+ *   PENDING      → neutral  (gris chaleureux)   : en attente, neutre
+ *   CONFIRMED    → info     (bleu-gris)          : confirmé mais pas arrivé
+ *   CHECKED_IN   → success  (vert brique)        : client présent = actif
+ *   CHECKED_OUT  → disabled (transparent+border) : clôturé, neutre
+ *   CANCELLED    → error    (rouge #B23A2E)      : annulation = bloquant / définitif
+ *   NO_SHOW      → warning  (ambre #9A6B1A)      : non-présentation = à traiter, diff. de CANCELLED
+ *
+ * CHAMBRE
+ *   VACANT       → neutral  : chambre libre, neutre
+ *   OCCUPIED     → info     : occupée = informatif
+ *
+ * HOUSEKEEPING
+ *   CLEAN        → success  : prête = positif
+ *   INSPECTION   → info     : à vérifier = neutre-actif
+ *   DIRTY        → warning  (ambre #9A6B1A)      : à nettoyer = à traiter, pas une erreur système
+ *
+ * TECHNIQUE
+ *   OPERATIONAL  → success  : opérationnel
+ *   MAINTENANCE  → error    : panne / hors service = bloquant
+ */
 const statusMapping: Record<BadgeStatus, string> = {
-  // Reservations
+  // Réservations
   PENDING: styles.neutral,
   CONFIRMED: styles.info,
   CHECKED_IN: styles.success,
   CHECKED_OUT: styles.disabled,
   CANCELLED: styles.error,
-  NO_SHOW: styles.error,
-  
-  // Occupancy
+  NO_SHOW: styles.warning,    // ambre — distinct de CANCELLED (rouge)
+
+  // Occupation
   VACANT: styles.neutral,
   OCCUPIED: styles.info,
-  
-  // Cleanliness
+
+  // Housekeeping
   CLEAN: styles.success,
   INSPECTION: styles.info,
-  DIRTY: styles.error,
+  DIRTY: styles.warning,      // ambre — à traiter, pas une erreur système
 
-  // Technical
+  // Technique
   OPERATIONAL: styles.success,
   MAINTENANCE: styles.error,
 };

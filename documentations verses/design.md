@@ -17,6 +17,7 @@
 | **Secondaire** | `--color-brand-chocolate` | `#3A1E17` | Titres, texte principal, header/footer premium, fond de sections "signature" |
 | **Secondaire — clair** | `--color-brand-chocolate-soft` | `#5C3A2E` | Texte secondaire sur fond clair, sous-titres |
 | **Accent Or / Vip** | `--color-brand-gold` | `#D9A441` | Étoiles, badges VIP, séparateurs décoratifs, micro-interactions (à utiliser à moins de 10% de la surface visible) |
+| **Accent Or — hover** | `--color-brand-gold-hover` | `#C4903A` | État hover du bouton gold — assombrissement cohérent avec le pattern `primary → primary-hover` |
 | **Accent Or — clair** | `--color-brand-gold-light` | `#F0D9A0` | Fonds de badge "VIP", hover discret sur icônes or |
 
 ### 1.2 Neutres & fonds
@@ -34,11 +35,12 @@
 
 ### 1.3 Feedback (à teinter avec la charte, jamais criard)
 
-| Rôle | HEX | Usage |
-|---|---|---|
-| Succès | `#3F7D5C` | Confirmation de réservation/commande |
-| Erreur | `#B23A2E` | Erreurs de formulaire (ton rouge brique, pas rouge pur) |
-| Info | `#5C7A8A` | Notices neutres |
+| Rôle | Token CSS | HEX | Usage |
+|---|---|---|---|
+| Succès | `--color-status-success` | `#3F7D5C` | Confirmation de réservation/commande, statut opérationnel |
+| Erreur | `--color-status-error` | `#B23A2E` | Erreurs bloquantes, statuts critiques (CANCELLED, panne matérielle) — rouge brique, jamais rouge pur |
+| Avertissement | `--color-status-warning` | `#9A6B1A` | Statuts à traiter, non bloquants (ex : chambre à nettoyer DIRTY, non-présentation NO_SHOW) — ambre cohérent avec la palette gold |
+| Info | `--color-status-info` | `#5C7A8A` | Notices neutres, statuts informatifs (CONFIRMED, INSPECTION) |
 
 **Règle d'or** : le rouge-orange (`primary`) ne doit jamais dépasser ~15% de la surface d'un écran. Le chocolate porte la structure, l'or ponctue, le rouge-orange agit.
 
@@ -182,14 +184,21 @@
 
 ```css
 :root {
-  /* Couleurs */
+  /* Couleurs de marque */
   --color-brand-primary: #E8491D;
   --color-brand-primary-hover: #C93C15;
   --color-brand-primary-tint: #FBE6DE;
   --color-brand-chocolate: #3A1E17;
   --color-brand-chocolate-soft: #5C3A2E;
   --color-brand-gold: #D9A441;
+  --color-brand-gold-hover: #C4903A;      /* hover bouton gold — assombrissement */
   --color-brand-gold-light: #F0D9A0;
+
+  /* Feedback / Statuts */
+  --color-status-success: #3F7D5C;
+  --color-status-error: #B23A2E;
+  --color-status-warning: #9A6B1A;        /* statuts à traiter, non bloquants */
+  --color-status-info: #5C7A8A;
 
   --color-bg-base: #FDFBF8;
   --color-bg-subtle: #F5F0E9;

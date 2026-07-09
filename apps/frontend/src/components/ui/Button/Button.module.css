@@ -103,7 +103,7 @@
 }
 
 .gold:hover:not(:disabled) {
-  background-color: var(--color-brand-gold-light);
+  background-color: var(--color-brand-gold-hover);
 }
 
 .gold:disabled {

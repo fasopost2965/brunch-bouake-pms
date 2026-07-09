@@ -33,6 +33,11 @@
   color: var(--color-text-secondary);
 }
 
+.warning {
+  background-color: var(--color-status-warning);
+  color: #FFFFFF;
+}
+
 .disabled {
   background-color: transparent;
   border: 1px solid var(--color-border);
