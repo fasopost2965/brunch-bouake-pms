@@ -249,6 +249,8 @@ model Reservation {
   adultsCount     Int               @default(1) @map("adults_count")
   childrenCount   Int               @default(0) @map("children_count")
   specialRequests String?           @map("special_requests") @db.Text
+  taxExempt       Boolean           @default(false) @map("tax_exempt")
+  taxExemptReason String?           @map("tax_exempt_reason") @db.Text
   createdById     Int               @map("created_by")
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")

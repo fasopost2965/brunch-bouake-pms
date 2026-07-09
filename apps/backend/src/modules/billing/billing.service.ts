@@ -37,6 +37,9 @@ export class BillingService {
       if (data.type === 'ACCOMMODATION') {
         unitPrice = parseFloat(folio.reservation.agreedRate.toString());
       } else if (data.type === 'TAX') {
+        if (folio.reservation.taxExempt) {
+          throw new BadRequestException('La réservation est exemptée de taxe. Ligne TAX refusée.');
+        }
         const settings = await tx.systemSettings.findUnique({ where: { id: 1 } });
         if (settings) {
           const taxRate = parseFloat(settings.touristTaxRate.toString());

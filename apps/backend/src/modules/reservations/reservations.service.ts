@@ -110,6 +110,12 @@ export class ReservationsService {
       const checkInDate = data.checkInDate ? new Date(data.checkInDate) : old.checkInDate;
       const checkOutDate = data.checkOutDate ? new Date(data.checkOutDate) : old.checkOutDate;
       const roomId = data.roomId !== undefined ? data.roomId : old.roomId;
+      const taxExempt = data.taxExempt !== undefined ? data.taxExempt : old.taxExempt;
+      const taxExemptReason = data.taxExemptReason !== undefined ? data.taxExemptReason : old.taxExemptReason;
+
+      if (taxExempt && !taxExemptReason) {
+        throw new BadRequestException('Un motif (taxExemptReason) est obligatoire lorsque la réservation est exemptée de taxe.');
+      }
 
       if (roomId) {
         await this.checkOverlap(tx, roomId, checkInDate, checkOutDate, id);
