@@ -67,6 +67,54 @@ async function main() {
     },
   });
 
+  console.log('Seeding Phase 1 test data...');
+  const roomType = await prisma.roomType.upsert({
+    where: { name: 'Standard Double' },
+    update: {},
+    create: {
+      name: 'Standard Double',
+      description: 'Chambre standard avec un lit double',
+      capacity: 2,
+      baseRate: 50000,
+    },
+  });
+
+  const room = await prisma.room.upsert({
+    where: { number: '101' },
+    update: {},
+    create: {
+      number: '101',
+      roomTypeId: roomType.id,
+      floor: 1,
+    },
+  });
+
+  const guest = await prisma.guest.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      firstName: 'John',
+      lastName: 'Doe',
+      phone: '0102030405',
+      email: 'john.doe@example.com',
+    },
+  });
+
+  // Adding new permissions for phase 1
+  const perms = ['reservations.write', 'settings.rooms.write'];
+  for (const code of perms) {
+    const perm = await prisma.permission.upsert({
+      where: { code },
+      update: {},
+      create: { code, module: 'phase1' },
+    });
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: roleMap['Admin'], permissionId: perm.id } },
+      update: {},
+      create: { roleId: roleMap['Admin'], permissionId: perm.id },
+    });
+  }
+
   console.log('Seed completed.');
 }
 
