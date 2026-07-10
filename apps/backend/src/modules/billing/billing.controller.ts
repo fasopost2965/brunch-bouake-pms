@@ -22,7 +22,7 @@ export class BillingController {
   }
 
   @Post('folios/:id/close')
-  @RequirePermission('billing.write')
+  @RequirePermission('billing.close')
   async closeFolio(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.billingService.closeFolio(id, body.override || false, body.overrideReason, req.user.sub);
   }

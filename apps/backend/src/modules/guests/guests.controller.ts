@@ -21,16 +21,19 @@ export class GuestsController {
   }
 
   @Post()
+  @RequirePermission('guests.write')
   async createGuest(@Request() req: any, @Body() body: any) {
     return this.guestsService.createGuest(body, req.user.sub);
   }
 
   @Put(':id')
+  @RequirePermission('guests.write')
   async updateGuest(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.guestsService.updateGuest(id, body, req.user.sub);
   }
 
   @Post(':id/documents')
+  @RequirePermission('guests.write')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
     @Request() req: any,

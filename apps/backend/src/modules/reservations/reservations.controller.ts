@@ -20,7 +20,7 @@ export class ReservationsController {
   }
 
   @Post()
-  @RequirePermission('reservations.write')
+  @RequirePermission('reservations.create')
   async createReservation(@Request() req: any, @Body() body: any) {
     return this.reservationsService.createReservation(body, req.user.sub);
   }
@@ -39,13 +39,13 @@ export class ReservationsController {
   }
 
   @Post(':id/checkin')
-  @RequirePermission('reservations.write')
+  @RequirePermission('reservations.checkin')
   async checkIn(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.reservationsService.checkIn(id, body.override || false, body.overrideReason, req.user.sub);
   }
 
   @Post(':id/checkout')
-  @RequirePermission('reservations.write')
+  @RequirePermission('reservations.checkout')
   async checkOut(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
     return this.reservationsService.checkOut(id, req.user.sub);
   }

@@ -23,7 +23,8 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id, role: user.roleId };
+    const permissions = user.role?.rolePermissions?.map((rp: any) => rp.permission?.code) || [];
+    const payload = { email: user.email, sub: user.id, role: user.roleId, permissions };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
@@ -38,6 +39,15 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email,
+        role: {
+          id: user.role?.id ?? user.roleId,
+          name: user.role?.name ?? 'Inconnu',
+        },
+      },
     };
   }
 
