@@ -1,39 +1,19 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { TokenRefresher } from '@/components/auth/TokenRefresher';
 import { logoutAction } from '@/lib/auth.actions';
 import { Button } from '@/components/ui';
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  BedDouble, 
-  Users, 
-  Receipt, 
-  Wrench, 
-  Sparkles,
-  PieChart
-} from 'lucide-react';
+import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import styles from './DashboardLayout.module.css';
 
 import * as jose from 'jose';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Dashboard — Brunch Bouaké PMS',
 };
-
-// Navigation items definition based on required permissions
-const ALL_NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, requiredPerms: [] }, // Everyone who can login can see dashboard
-  { href: '/reservations', label: 'Réservations', icon: CalendarDays, requiredPerms: ['reservations.read'] },
-  { href: '/rooms', label: 'Chambres', icon: BedDouble, requiredPerms: ['settings.rooms.read'] },
-  { href: '/housekeeping', label: 'Housekeeping', icon: Sparkles, requiredPerms: ['housekeeping.read'] },
-  { href: '/maintenance', label: 'Maintenance', icon: Wrench, requiredPerms: ['maintenance.read'] },
-  { href: '/guests', label: 'Clients', icon: Users, requiredPerms: ['guests.read'] },
-  { href: '/billing', label: 'Folios & Facturation', icon: Receipt, requiredPerms: ['billing.read'] },
-  { href: '/reports', label: 'Rapports', icon: PieChart, requiredPerms: ['reports.read'] },
-];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -53,11 +33,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  // Filter navigation items based on user permissions
-  const navItems = ALL_NAV_ITEMS.filter(item => 
-    item.requiredPerms.length === 0 || item.requiredPerms.some(p => userPerms.includes(p))
-  );
-
   return (
     <>
       <TokenRefresher hasAccessToken={hasAccessToken} />
@@ -76,25 +51,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 unoptimized
               />
             </div>
-            <nav className={styles.nav}>
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                // Since this is a server component, we just check if it's the exact path for active state.
-                // For a more dynamic active state, we'd need a client component for the navigation.
-                // We'll keep it simple here.
-                const isActive = item.href === '/dashboard'; // Hardcoded for now since we are in layout
-                return (
-                  <Link 
-                    key={item.href} 
-                    href={item.href} 
-                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
-                  >
-                    <Icon size={20} />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <SidebarNav userPerms={userPerms} />
           </aside>
 
           {/* Main Content */}

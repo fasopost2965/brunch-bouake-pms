@@ -1,0 +1,139 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  font-family: var(--font-heading), serif;
+  font-size: 2rem;
+  color: var(--color-brand-chocolate);
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  width: 100%;
+}
+
+.searchWrapper {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-base);
+  font-family: var(--font-body), sans-serif;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  flex: 1;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-base);
+  font-family: var(--font-body), sans-serif;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.tableWrapper {
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(67, 34, 18, 0.02);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.th {
+  padding: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  background-color: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 150ms ease;
+}
+
+.tr:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.td {
+  padding: 16px;
+  font-size: 0.875rem;
+}
+
+.roomCell {
+  font-weight: 700;
+  color: var(--color-brand-chocolate);
+}
+
+.amountCell {
+  text-align: right;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 500;
+}
+
+.balanceCell {
+  text-align: right;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  display: inline-block;
+}
+
+/* Statuses */
+.statusOPEN { background-color: #E8F5E9; color: #2E7D32; }
+.statusCLOSED { background-color: #ECEFF1; color: #455A64; }
+
+/* Types */
+.typeMAIN { background-color: #E3F2FD; color: #1565C0; }
+.typeADJUSTMENT { background-color: #F3E5F5; color: #6A1B9A; }

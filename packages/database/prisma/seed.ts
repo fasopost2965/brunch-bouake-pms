@@ -141,6 +141,20 @@ async function main() {
     },
   });
 
+  console.log('👤 Seeding receptionist user...');
+  const recepHash = await bcrypt.hash('reception_pass_2026', salt);
+  await prisma.user.upsert({
+    where: { email: 'reception@brunchbouake.com' },
+    update: {},
+    create: {
+      email: 'reception@brunchbouake.com',
+      passwordHash: recepHash,
+      firstName: 'Sophie',
+      lastName: 'Koné',
+      roleId: roleMap['Receptionniste'],
+    },
+  });
+
   console.log('🏨 Seeding base room data...');
   const roomType = await prisma.roomType.upsert({
     where: { name: 'Standard Double' },

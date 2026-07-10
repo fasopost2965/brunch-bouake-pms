@@ -12,14 +12,35 @@ export class ReservationsService {
 
   async getReservations() {
     return this.prisma.reservation.findMany({
-      include: { guest: true, room: true },
+      include: { 
+        guest: true, 
+        room: true,
+        folios: {
+          include: {
+            lines: true,
+            payments: true,
+            invoice: true,
+          }
+        }
+      },
     });
   }
 
   async getReservationById(id: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
-      include: { guest: true, room: true, statusHistory: true },
+      include: { 
+        guest: true, 
+        room: true, 
+        statusHistory: true,
+        folios: {
+          include: {
+            lines: true,
+            payments: true,
+            invoice: true,
+          }
+        }
+      },
     });
     if (!reservation) throw new NotFoundException('Reservation not found');
     return reservation;
