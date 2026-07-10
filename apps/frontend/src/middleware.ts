@@ -6,12 +6,11 @@ const PUBLIC_PATHS = ['/login'];
 
 // Route to permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string[]> = {
-  '/dashboard/reservations': ['reservations.read', 'reservations.write'],
-  '/dashboard/rooms': ['settings.rooms.read', 'settings.rooms.write'],
-  '/dashboard/housekeeping': ['housekeeping.read', 'housekeeping.write'],
-  '/dashboard/maintenance': ['maintenance.read', 'maintenance.write'],
-  '/dashboard/guests': ['guests.read', 'guests.write'],
-  '/dashboard/billing': ['billing.read', 'billing.write'],
+  '/dashboard/reservations': ['reservations.create', 'reservations.write', 'reservations.checkin', 'reservations.checkout'],
+  '/dashboard/housekeeping': ['housekeeping.write'],
+  '/dashboard/maintenance': ['maintenance.write'],
+  '/dashboard/guests': ['guests.write'],
+  '/dashboard/billing': ['billing.write', 'billing.close'],
   '/dashboard/reports': ['reports.read'],
 };
 
