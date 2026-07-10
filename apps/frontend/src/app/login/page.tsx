@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useActionState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { loginAction, LoginState } from '@/lib/auth.actions';
 import { Button, Input, Spinner } from '@/components/ui';
 import styles from './LoginPage.module.css';
@@ -21,7 +22,15 @@ export default function LoginPage() {
       <aside className={styles.panel} aria-hidden="true">
         <div className={styles.panelContent}>
           <div className={styles.logo}>
-            <span className={styles.logoMark}>BB</span>
+            <Image 
+              src="/logo-brunch-bouake.png" 
+              alt="Logo Brunch Bouaké" 
+              width={160} 
+              height={158} 
+              priority 
+              unoptimized
+              style={{ objectFit: 'contain' }}
+            />
           </div>
           <blockquote className={styles.tagline}>
             <p>L&apos;hospitalité,</p>

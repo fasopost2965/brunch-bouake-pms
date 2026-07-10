@@ -20,7 +20,7 @@ export async function loginAction(
     return { error: 'Email et mot de passe requis.' };
   }
 
-  let data: { access_token: string; refresh_token: string; user: { role: { name: string } } };
+  let data: { access_token: string; refresh_token: string; user: { name: string, role: { name: string } } };
 
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
@@ -59,8 +59,16 @@ export async function loginAction(
     maxAge: 60 * 60 * 24 * 7, // 7 days
   });
 
-  // Store role for middleware routing (not sensitive)
+  // Store role and name for middleware/UI (not sensitive)
   cookieStore.set('user_role', data.user.role.name, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  cookieStore.set('user_name', data.user.name, {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -96,6 +104,7 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('access_token');
   cookieStore.delete('refresh_token');
   cookieStore.delete('user_role');
+  cookieStore.delete('user_name');
 
   redirect('/login');
 }
