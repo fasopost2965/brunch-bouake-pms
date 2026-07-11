@@ -89,13 +89,13 @@ export default function HousekeepingClient({
 
     setIsSubmitting(false);
 
-    if (result.success && result.task) {
+    if (result.success && result.data) {
       // Find room details to append correctly
       const rDetails = rooms.find(r => r.id === parseInt(createRoomId, 10));
       const uDetails = staff.find(s => s.id === (createAssigneeId ? parseInt(createAssigneeId, 10) : 0));
       
       const newTaskWithDetails: HousekeepingTask = {
-        ...result.task,
+        ...result.data,
         room: rDetails || { id: parseInt(createRoomId, 10), number: 'Unknown' },
         assignedTo: uDetails || null,
         reportedBy: { id: 0, firstName: 'Moi', lastName: '', role: { name: 'Admin' } }, // Simple placeholder

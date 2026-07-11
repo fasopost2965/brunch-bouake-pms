@@ -3,9 +3,7 @@
 // ============================================
 // Re-exports PrismaClient for use across the monorepo
 
-export { PrismaClient } from '@prisma/client';
-export type { Prisma } from '@prisma/client';
-
+export * from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 
 // Singleton pattern to avoid multiple PrismaClient instances in dev

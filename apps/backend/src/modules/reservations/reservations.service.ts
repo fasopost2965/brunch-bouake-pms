@@ -92,13 +92,27 @@ export class ReservationsService {
       const checkInDate = new Date(data.checkInDate);
       const checkOutDate = new Date(data.checkOutDate);
 
-      if (data.roomId) {
-        await this.checkOverlap(tx, data.roomId, checkInDate, checkOutDate);
+      // Construire les données Prisma avec les types corrects
+      const reservationData: any = {
+        guestId: data.guestId,
+        checkInDate,
+        checkOutDate,
+        agreedRate: data.agreedRate,
+        adultsCount: data.adultsCount ?? 1,
+        childrenCount: data.childrenCount ?? 0,
+        roomId: data.roomId || null,
+      };
+      // Champs optionnels : ne les inclure que s'ils sont définis
+      if (data.specialRequests) reservationData.specialRequests = data.specialRequests;
+      if (data.source) reservationData.source = data.source;
+
+      if (reservationData.roomId) {
+        await this.checkOverlap(tx, reservationData.roomId, checkInDate, checkOutDate);
       }
 
       const reservation = await tx.reservation.create({
         data: {
-          ...data,
+          ...reservationData,
           createdById: adminId,
           folios: {
             create: {
@@ -117,7 +131,7 @@ export class ReservationsService {
         newValues: reservation,
       });
 
-      await this.logStatusHistory(tx, reservation.id, 'PENDING', data.status || 'PENDING', 'Creation', adminId);
+      await this.logStatusHistory(tx, reservation.id, 'PENDING', 'PENDING', 'Creation', adminId);
 
       return reservation;
     });

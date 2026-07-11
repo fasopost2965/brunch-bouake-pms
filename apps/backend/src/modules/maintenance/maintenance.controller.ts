@@ -3,7 +3,8 @@ import { MaintenanceService } from './maintenance.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
-
+import { CreateMaintenanceIssueDto } from './dto/create-maintenance-issue.dto';
+import { UpdateMaintenanceIssueDto } from './dto/update-maintenance-issue.dto';
 @Controller('maintenance')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class MaintenanceController {
@@ -16,13 +17,13 @@ export class MaintenanceController {
 
   @Post('issues')
   @RequirePermission('maintenance.write')
-  async createIssue(@Request() req: any, @Body() body: any) {
+  async createIssue(@Request() req: any, @Body() body: CreateMaintenanceIssueDto) {
     return this.maintenanceService.createIssue(body, req.user.sub);
   }
 
   @Put('issues/:id')
   @RequirePermission('maintenance.write')
-  async updateIssue(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async updateIssue(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateMaintenanceIssueDto) {
     return this.maintenanceService.updateIssue(id, body, req.user.sub);
   }
 }

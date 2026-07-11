@@ -3,7 +3,7 @@ import { UsersRolesService } from './users-roles.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
-
+import { CreateUserDto } from './dto/create-user.dto';
 @Controller('users-roles')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersRolesController {
@@ -11,8 +11,7 @@ export class UsersRolesController {
 
   @Post('users')
   @RequirePermission('users.create')
-  async createUser(@Request() req: any, @Body() body: any) {
-    // req.user contains the decoded JWT payload
+  async createUser(@Request() req: any, @Body() body: CreateUserDto) {
     return this.usersRolesService.createUser(body, req.user.sub);
   }
 

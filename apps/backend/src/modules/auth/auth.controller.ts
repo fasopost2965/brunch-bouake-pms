@@ -1,13 +1,14 @@
 import { Controller, Post, Body, UnauthorizedException, Request, UseGuards, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-
+import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: any) {
+  async login(@Body() body: LoginDto) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -16,10 +17,7 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body() body: any) {
-    if (!body.refresh_token) {
-      throw new UnauthorizedException('Refresh token required');
-    }
+  async refresh(@Body() body: RefreshDto) {
     return this.authService.refresh(body.refresh_token);
   }
 

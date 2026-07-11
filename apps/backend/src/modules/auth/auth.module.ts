@@ -10,9 +10,17 @@ import { UsersRolesModule } from '../users-roles/users-roles.module';
   imports: [
     forwardRef(() => UsersRolesModule),
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-key-change-me',
-      signOptions: { expiresIn: '15m' }, // Access token expiration
+    JwtModule.registerAsync({
+      useFactory: () => {
+        const secret = process.env.JWT_SECRET;
+        if (!secret) {
+          throw new Error('FATAL: JWT_SECRET environment variable is not defined.');
+        }
+        return {
+          secret,
+          signOptions: { expiresIn: '15m' }, // Access token expiration
+        };
+      },
     }),
   ],
   providers: [AuthService, JwtStrategy],

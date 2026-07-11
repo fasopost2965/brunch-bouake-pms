@@ -1,15 +1,9 @@
 import React from 'react';
 import styles from './Badge.module.css';
 
-export type BadgeStatus = 
-  | 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'NO_SHOW'
-  | 'VACANT' | 'OCCUPIED'
-  | 'CLEAN' | 'INSPECTION' | 'DIRTY'
-  | 'OPERATIONAL' | 'MAINTENANCE'
-  | 'OPEN' | 'CLOSED' | 'MAIN' | 'ADJUSTMENT' | 'NEUTRAL';
-
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  status: BadgeStatus;
+  status: string;
+  variant?: 'reservation' | 'folio' | 'housekeeping' | 'maintenance' | 'room';
   label?: string;
 }
 
@@ -37,38 +31,43 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
  *   OPERATIONAL  → success  : opérationnel
  *   MAINTENANCE  → error    : panne / hors service = bloquant
  */
-const statusMapping: Record<BadgeStatus, string> = {
-  // Réservations
-  PENDING: styles.neutral,
-  CONFIRMED: styles.info,
-  CHECKED_IN: styles.success,
-  CHECKED_OUT: styles.disabled,
-  CANCELLED: styles.error,
-  NO_SHOW: styles.warning,    // ambre — distinct de CANCELLED (rouge)
-
-  // Occupation
-  VACANT: styles.neutral,
-  OCCUPIED: styles.info,
-
-  // Housekeeping
-  CLEAN: styles.success,
-  INSPECTION: styles.info,
-  DIRTY: styles.warning,      // ambre — à traiter, pas une erreur système
-
-  // Technique
-  OPERATIONAL: styles.success,
-  MAINTENANCE: styles.error,
-
-  // Folios
-  OPEN: styles.success,
-  CLOSED: styles.neutral,
-  MAIN: styles.info,
-  ADJUSTMENT: styles.warning,
-  NEUTRAL: styles.neutral,
+const domainMapping: Record<string, Record<string, string>> = {
+  reservation: {
+    PENDING: styles.neutral,
+    CONFIRMED: styles.info,
+    CHECKED_IN: styles.success,
+    CHECKED_OUT: styles.disabled,
+    CANCELLED: styles.error,
+    NO_SHOW: styles.warning,
+  },
+  room: {
+    VACANT: styles.neutral,
+    OCCUPIED: styles.info,
+  },
+  housekeeping: {
+    CLEAN: styles.success,
+    INSPECTION: styles.info,
+    DIRTY: styles.warning,
+  },
+  maintenance: {
+    OPERATIONAL: styles.success,
+    MAINTENANCE: styles.error,
+  },
+  folio: {
+    OPEN: styles.success,
+    CLOSED: styles.neutral,
+    MAIN: styles.info,
+    ADJUSTMENT: styles.warning,
+    NEUTRAL: styles.neutral,
+  }
 };
 
-export function Badge({ status, label, className, ...props }: BadgeProps) {
-  const rootClass = `${styles.badge} ${statusMapping[status] || styles.neutral} ${className || ''}`;
+export function Badge({ status, variant = 'reservation', label, className, ...props }: BadgeProps) {
+  // Fallback to flat lookup if variant is wrong, but ideally it should hit the nested dictionary
+  const domainDict = domainMapping[variant] || domainMapping.reservation;
+  const colorClass = domainDict[status] || styles.neutral;
+  
+  const rootClass = `${styles.badge} ${colorClass} ${className || ''}`;
 
   return (
     <span className={rootClass.trim()} {...props}>

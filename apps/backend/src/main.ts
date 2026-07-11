@@ -12,7 +12,8 @@ async function bootstrap() {
   // Global validation pipe for DTOs and @Transform
   app.useGlobalPipes(new ValidationPipe({ 
     transform: true, 
-    whitelist: true 
+    whitelist: true,
+    forbidNonWhitelisted: true
   }));
 
   // Global prefix for all API routes

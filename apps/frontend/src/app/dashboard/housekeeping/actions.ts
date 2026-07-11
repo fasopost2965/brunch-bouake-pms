@@ -3,6 +3,8 @@
 import { fetchWithAuth } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 
+import { ActionResponse } from '@brunch/shared-types';
+
 export async function createHousekeepingTaskAction(data: {
   roomId: number;
   type: 'CHECKOUT_CLEAN' | 'STAYOVER_CLEAN' | 'INSPECTION' | 'DEEP_CLEAN';
@@ -10,7 +12,7 @@ export async function createHousekeepingTaskAction(data: {
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
   assignedToId?: number | null;
   notes?: string;
-}) {
+}): Promise<ActionResponse<any>> {
   try {
     const task = await fetchWithAuth('/housekeeping/tasks', {
       method: 'POST',
@@ -18,9 +20,9 @@ export async function createHousekeepingTaskAction(data: {
     });
     revalidatePath('/dashboard/housekeeping');
     revalidatePath('/dashboard/rooms');
-    return { success: true, task };
+    return { success: true, data: task };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Une erreur est survenue', code: error.status || 500 };
   }
 }
 
@@ -29,7 +31,7 @@ export async function updateHousekeepingTaskAction(taskId: number, data: {
   assignedToId?: number | null;
   inspectionResult?: 'CLEAN' | 'DIRTY' | 'INSPECTION' | null;
   notes?: string;
-}) {
+}): Promise<ActionResponse<any>> {
   try {
     const task = await fetchWithAuth(`/housekeeping/tasks/${taskId}`, {
       method: 'PUT',
@@ -37,8 +39,8 @@ export async function updateHousekeepingTaskAction(taskId: number, data: {
     });
     revalidatePath('/dashboard/housekeeping');
     revalidatePath('/dashboard/rooms');
-    return { success: true, task };
+    return { success: true, data: task };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Une erreur est survenue', code: error.status || 500 };
   }
 }

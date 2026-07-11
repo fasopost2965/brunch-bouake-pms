@@ -2,31 +2,9 @@
 // @brunch/shared-types — Entry point
 // ============================================
 // Types partagés entre le backend NestJS et le frontend Next.js
-// Les types métier seront ajoutés après validation du scaffolding
+// Les types liés à la DB (Enums, Models) doivent être importés de @brunch/database.
 
-// ── Statuts de chambre (3 axes indépendants) ──
-export type OccupancyStatus = 'vacant' | 'occupied' | 'due_out' | 'due_in';
-export type CleanlinessStatus = 'clean' | 'dirty' | 'inspected' | 'out_of_order';
-export type MaintenanceStatus = 'ok' | 'maintenance_needed' | 'under_maintenance';
-
-export interface RoomStatus {
-  occupancy: OccupancyStatus;
-  cleanliness: CleanlinessStatus;
-  maintenance: MaintenanceStatus;
-}
-
-// ── Réservation ────────────────────────────────
-export type ReservationStatus =
-  | 'confirmed'
-  | 'checked_in'
-  | 'checked_out'
-  | 'cancelled'
-  | 'no_show';
-
-// ── Folio ──────────────────────────────────────
-export type FolioStatus = 'open' | 'closed';
-
-// ── API Response wrapper ───────────────────────
+// ── API Response wrapper (Backend) ─────────────
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -34,5 +12,8 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-// ── User roles ─────────────────────────────────
-export type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper';
+// ── Server Action Response wrapper (Frontend) ──
+export type ActionResponse<T> = 
+  | { success: true; data: T; error?: null; code?: null }
+  | { success: false; error: string; code: number; data?: null };
+

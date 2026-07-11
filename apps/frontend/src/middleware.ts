@@ -45,8 +45,10 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Verify JWT using jose
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'change-me-in-production');
+    if (!process.env.JWT_SECRET) {
+      throw new Error('FATAL: JWT_SECRET environment variable is not defined.');
+    }
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jose.jwtVerify(accessToken, secret);
     
     // Redirect authenticated users away from login

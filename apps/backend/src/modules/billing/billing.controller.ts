@@ -3,7 +3,10 @@ import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
-
+import { CreateFolioLineDto } from './dto/create-folio-line.dto';
+import { CreatePaymentDto } from './dto/create-payment.dto';
+import { CloseFolioDto } from './dto/close-folio.dto';
+import { CreateAdjustmentFolioDto } from './dto/create-adjustment-folio.dto';
 @Controller()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class BillingController {
@@ -11,25 +14,25 @@ export class BillingController {
 
   @Post('folios/:id/lines')
   @RequirePermission('billing.write')
-  async addFolioLine(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async addFolioLine(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: CreateFolioLineDto) {
     return this.billingService.addFolioLine(id, body, req.user.sub);
   }
 
   @Post('folios/:id/payments')
   @RequirePermission('billing.write')
-  async addPayment(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async addPayment(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: CreatePaymentDto) {
     return this.billingService.addPayment(id, body, req.user.sub);
   }
 
   @Post('folios/:id/close')
   @RequirePermission('billing.close')
-  async closeFolio(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
-    return this.billingService.closeFolio(id, body.override || false, body.overrideReason, req.user.sub);
+  async closeFolio(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: CloseFolioDto) {
+    return this.billingService.closeFolio(id, body.override || false, body.overrideReason || '', req.user.sub);
   }
 
   @Post('reservations/:id/folios/adjustment')
   @RequirePermission('billing.adjustment.create')
-  async createAdjustmentFolio(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async createAdjustmentFolio(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: CreateAdjustmentFolioDto) {
     return this.billingService.createAdjustmentFolio(id, body.justification, req.user.sub);
   }
 }

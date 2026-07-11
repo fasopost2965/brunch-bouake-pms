@@ -3,7 +3,10 @@ import { ReservationsService } from './reservations.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
-
+import { CreateReservationDto } from './dto/create-reservation.dto';
+import { UpdateReservationDto } from './dto/update-reservation.dto';
+import { UpdateTaxExemptionDto } from './dto/update-tax-exemption.dto';
+import { CheckInDto } from './dto/check-in.dto';
 @Controller('reservations')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ReservationsController {
@@ -21,27 +24,26 @@ export class ReservationsController {
 
   @Post()
   @RequirePermission('reservations.create')
-  async createReservation(@Request() req: any, @Body() body: any) {
+  async createReservation(@Request() req: any, @Body() body: CreateReservationDto) {
     return this.reservationsService.createReservation(body, req.user.sub);
   }
 
   @Put(':id')
   @RequirePermission('reservations.write')
-  async updateReservation(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
-    const { taxExempt, taxExemptReason, ...updateData } = body;
-    return this.reservationsService.updateReservation(id, updateData, req.user.sub);
+  async updateReservation(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateReservationDto) {
+    return this.reservationsService.updateReservation(id, body, req.user.sub);
   }
 
   @Patch(':id/tax-exemption')
   @RequirePermission('reservation.tax_exempt')
-  async updateTaxExemption(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
-    return this.reservationsService.updateTaxExemption(id, body.taxExempt, body.taxExemptReason, req.user.sub);
+  async updateTaxExemption(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateTaxExemptionDto) {
+    return this.reservationsService.updateTaxExemption(id, body.taxExempt, body.taxExemptReason ?? '', req.user.sub);
   }
 
   @Post(':id/checkin')
   @RequirePermission('reservations.checkin')
-  async checkIn(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
-    return this.reservationsService.checkIn(id, body.override || false, body.overrideReason, req.user.sub);
+  async checkIn(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: CheckInDto) {
+    return this.reservationsService.checkIn(id, body.override || false, body.overrideReason ?? '', req.user.sub);
   }
 
   @Post(':id/checkout')
