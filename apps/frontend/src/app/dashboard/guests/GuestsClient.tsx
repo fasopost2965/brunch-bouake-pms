@@ -34,6 +34,7 @@ export default function GuestsClient({ initialGuests, canWrite }: { initialGuest
               <th style={{ padding: '16px', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>Email</th>
               <th style={{ padding: '16px', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>Téléphone</th>
               <th style={{ padding: '16px', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>Pièce d'identité</th>
+              <th style={{ padding: '16px', fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.875rem', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -46,11 +47,16 @@ export default function GuestsClient({ initialGuests, canWrite }: { initialGuest
                 <td style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>
                   {guest.idType ? `${guest.idType} (${guest.idNumber})` : '-'}
                 </td>
+                <td style={{ padding: '16px', textAlign: 'right' }}>
+                   <Link href={`/dashboard/guests/${guest.id}`} style={{ color: 'var(--color-brand-gold)', textDecoration: 'none', fontWeight: 500 }}>
+                      Voir Profil
+                   </Link>
+                </td>
               </tr>
             ))}
             {initialGuests.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-secondary)' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-secondary)' }}>
                   Aucun client trouvé.
                 </td>
               </tr>

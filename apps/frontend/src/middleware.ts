@@ -6,7 +6,10 @@ const PUBLIC_PATHS = ['/login'];
 
 // Route to permissions mapping
 const ROUTE_PERMISSIONS: Record<string, string[]> = {
-  '/dashboard/reservations': ['reservations.create', 'reservations.write', 'reservations.checkin', 'reservations.checkout'],
+  '/dashboard/reservations/new': ['reservations.create'],
+  '/dashboard/reservations/checkin': ['reservations.checkin'],
+  '/dashboard/reservations/checkout': ['reservations.checkout'],
+  '/dashboard/reservations': ['reservations.write'],
   '/dashboard/housekeeping': ['housekeeping.write'],
   '/dashboard/maintenance': ['maintenance.write'],
   '/dashboard/guests': ['guests.write'],
@@ -53,15 +56,16 @@ export async function middleware(request: NextRequest) {
 
     // RBAC Check for Dashboard routes
     if (pathname.startsWith('/dashboard')) {
-      // Find required permissions for this route
-      const requiredPerms = Object.entries(ROUTE_PERMISSIONS).find(([route]) => 
+      // Sort routes by length descending so specific routes match first
+      const sortedRoutes = Object.entries(ROUTE_PERMISSIONS).sort((a, b) => b[0].length - a[0].length);
+      const requiredPerms = sortedRoutes.find(([route]) => 
         pathname.startsWith(route)
       )?.[1];
 
       if (requiredPerms) {
         const userPerms = (payload.permissions as string[]) || [];
-        // Check if user has ANY of the required permissions for this route
-        const hasPermission = requiredPerms.some(p => userPerms.includes(p));
+        // Check if user has ALL of the required permissions for this specific route match
+        const hasPermission = requiredPerms.every(p => userPerms.includes(p));
         
         if (!hasPermission) {
           // UX layer: redirect to a safe page if unauthorized

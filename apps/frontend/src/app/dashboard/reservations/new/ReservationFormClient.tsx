@@ -34,6 +34,17 @@ export default function ReservationFormClient({ guests, rooms }: { guests: any[]
     });
   };
 
+  const calculateEstimatedTotal = () => {
+    if (!formData.checkInDate || !formData.checkOutDate || !formData.agreedRate) return null;
+    const checkIn = new Date(formData.checkInDate).getTime();
+    const checkOut = new Date(formData.checkOutDate).getTime();
+    if (checkOut <= checkIn) return null; // Invalid dates
+    const nights = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24)));
+    return parseFloat(formData.agreedRate) * nights;
+  };
+
+  const estimatedTotal = calculateEstimatedTotal();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -123,12 +134,21 @@ export default function ReservationFormClient({ guests, rooms }: { guests: any[]
           />
         </div>
 
+        {estimatedTotal !== null && estimatedTotal > 0 && (
+          <div style={{ backgroundColor: 'var(--color-bg-subtle)', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-brand-gold-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <span style={{ fontWeight: 500, color: 'var(--color-brand-chocolate)' }}>Montant estimé du séjour :</span>
+             <span style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-brand-chocolate)' }}>
+               {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(estimatedTotal)}
+             </span>
+          </div>
+        )}
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
           <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
             Annuler
           </Button>
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? <Spinner size="sm" /> : 'Créer la réservation'}
+            {loading ? <><Spinner size="sm" /> Traitement en cours...</> : 'Créer la réservation'}
           </Button>
         </div>
       </form>

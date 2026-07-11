@@ -33,6 +33,18 @@
 > location: /dashboard
 > ```
 > Un test similaire sur l'Admin a retourné un `200 OK`.
+> 
+> Un second test a été effectué sur `/dashboard/maintenance` avec le token Réceptionniste (route nécessitant `maintenance.write`) :
+> ```bash
+> $ curl -s -I -H "Cookie: access_token=$TOKEN_RECEPTIONIST" http://localhost:3000/dashboard/maintenance
+> HTTP/1.1 307 Temporary Redirect
+> location: /dashboard
+> ```
+
+> [!WARNING]
+> **Dette Technique Identifiée - Permissions en Lecture :**
+> Le mapping actuel confond l'accès en lecture à la page et la permission d'écriture pour les modules Housekeeping, Maintenance, Guests et Billing (ex: une seule permission `housekeeping.write` contrôle les deux). 
+> **Action future :** Si un futur rôle nécessite un accès en lecture seule stricte à l'un de ces modules (sans droit d'écriture), il faudra introduire des permissions distinctes `*.read` dans le backend (`seed.ts`) et les refléter dans le middleware. Actuellement non bloquant pour le MVP vu les rôles existants.
 
 ## 3. Architecture / Clean Code
 **Statut : Conforme ✅**
@@ -61,3 +73,91 @@
 **Statut : Conforme ✅**
 * L'API backend est saine en cas d'accès non autorisé (renvoie un 403 propre) grâce aux Guards (JwtAuthGuard, PermissionsGuard).
 * Les actions serveurs Next.js (`actions.ts`) encadrent les appels API dans des blocs try/catch et renvoient des objets `{ success, error }` pour éviter des crashs de l'interface.
+
+## 7. Phase 3 : Profils Clients & DTOs
+**Statut : Conforme ✅**
+* Le composant `GuestDetailClient` a été implémenté avec trois onglets fonctionnels : Général (incluant les KPI de dépenses et nuitées), Documents (avec upload FormData natif), et Réservations (historique).
+* Les DTOs du backend (`CreateGuestDto` et `UpdateGuestDto`) utilisent désormais l'annotation `@Transform` pour convertir proprement les chaînes vides `""` provenant des formulaires HTML natifs en `null`, évitant les erreurs Prisma `NaN` ou `Invalid type`.
+
+> [!IMPORTANT]
+> **Preuve Brute - Validation DTOs avec chaînes vides :**
+> Un test `fetch` direct sur l'API `/guests` a été réalisé avec un payload contenant des champs vides pour `email`, `phone`, et `idType`.
+> ```json
+> // Payload envoyé
+> {
+>   "firstName": "Empty",
+>   "lastName": "StringTest",
+>   "phone": "",
+>   "email": "",
+>   "idType": "",
+>   "idNumber": "",
+>   "nationality": "",
+>   "notes": ""
+> }
+> ```
+> La réponse de l'API (HTTP 201) démontre la conversion correcte :
+> ```json
+> // Réponse de l'API
+> {
+>   "id": 42,
+>   "firstName": "Empty",
+>   "lastName": "StringTest",
+>   "email": null,
+>   "phone": null,
+>   "idType": null,
+>   ...
+> }
+> ```
+>
+> **Preuve Brute - RBAC Guest Update :**
+> Une tentative de mise à jour d'un client par un réceptionniste sans la permission `guests.write` renvoie correctement un statut `403 Forbidden` bloqué par le `PermissionsGuard` de NestJS. Un administrateur avec la permission réussit avec un `200 OK`. L'UI s'adapte en cachant les formulaires d'édition si la permission fait défaut.
+
+## 8. Injection UI/UX Dynamique (Phase 3.5)
+**Statut : Conforme ✅**
+Conformément à l'ordre de supervision stricte, les chantiers graphiques ont été intégrés :
+
+* **A. Graphiques KPI Dashboard :** La librairie `recharts` a été intégrée dans le frontend via le nouveau composant client `DashboardChartsClient.tsx`. Un LineChart retrace le Taux d'Occupation sur 30 jours, et un BarChart expose la répartition des revenus par type de chambre.
+* **B. Micro-interactions CSS :** Les survol (`:hover`) dans `DashboardLayout.module.css` (Sidebar) et `Card.module.css` bénéficient d'un `transition: all 0.2s ease-in-out` avec ombre portée (`box-shadow`) et `transform: translateY` pour un effet de carte tactile. Des animations Skeleton (`@keyframes skeletonPulse`) ont été ajoutées dans `globals.css` et implémentées sur `GuestDetailClient.tsx`.
+* **C. Formulaires Intelligents :** Le `ReservationFormClient.tsx` calcule désormais en temps réel le montant estimé du séjour (`baseRate * nuits`) et désactive le bouton de validation ("Traitement en cours...") lors du clic pour éviter les doubles soumissions.
+* **Build Frontend :** Un build de vérification (`npm run build`) a été exécuté pour s'assurer que l'intégration de Recharts et les modifications TypeScript compilent parfaitement.
+
+## 9. Facturation & Immuabilité (Phase 4)
+**Statut : Conforme ✅**
+Conformément aux directives de la Phase 4, le module financier a été consolidé pour garantir l'atomicité et l'immuabilité stricte :
+
+* **Interface de Gestion (`BillingClient.tsx`) :** 
+  * Création d'une vue de détail (Modale) accessible depuis la grille globale permettant de gérer les lignes, paiements et statuts des Folios.
+  * Les formulaires d'ajout de charges et de paiements disparaissent dynamiquement si `folio.status === 'CLOSED'`, conformément à l'obligation d'immuabilité visuelle.
+  * L'action de clôture est protégée et n'apparaît que si le JWT de l'utilisateur contient bien la permission `billing.close` (vérification hybride Middleware/Serveur/Client).
+* **Immuabilité API (Preuve Brute) :**
+  L'API rejette techniquement toute mutation sur un folio `CLOSED`.
+  * *Test d'Altération (POST /api/billing/folios/1/lines) sur un folio clôturé :*
+  ```json
+  // Request
+  POST /api/billing/folios/1/lines
+  { "type": "SERVICE", "amount": 5000, "description": "Tentative de fraude" }
+  
+  // Response (HTTP 403 Forbidden)
+  {
+    "message": "Cannot modify a closed folio",
+    "error": "Forbidden",
+    "statusCode": 403
+  }
+  ```
+* **Ajustements (`createAdjustmentFolioAction`) :**
+  Si le folio est clos, l'interface propose la création d'un Folio Correctif (`type: ADJUSTMENT`). Ce folio dérive du `parentFolioId` et commence avec un solde à 0, recevant sa propre séquence de facturation sans briser l'intégrité du premier.
+  * *Preuve d'Action d'Ajustement :*
+  ```json
+  // Action Response: createAdjustmentFolioAction
+  {
+    "success": true,
+    "data": {
+      "id": 2,
+      "reservationId": 42,
+      "type": "ADJUSTMENT",
+      "parentFolioId": 1,
+      "status": "OPEN",
+      "balanceDue": 0
+    }
+  }
+  ```

@@ -5,6 +5,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermission } from '../auth/decorators/permissions.decorator';
 
+import { CreateGuestDto } from './dto/create-guest.dto';
+import { UpdateGuestDto } from './dto/update-guest.dto';
+
 @Controller('guests')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class GuestsController {
@@ -22,13 +25,13 @@ export class GuestsController {
 
   @Post()
   @RequirePermission('guests.write')
-  async createGuest(@Request() req: any, @Body() body: any) {
+  async createGuest(@Request() req: any, @Body() body: CreateGuestDto) {
     return this.guestsService.createGuest(body, req.user.sub);
   }
 
   @Put(':id')
   @RequirePermission('guests.write')
-  async updateGuest(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async updateGuest(@Request() req: any, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateGuestDto) {
     return this.guestsService.updateGuest(id, body, req.user.sub);
   }
 

@@ -23,7 +23,11 @@ export default function GuestFormClient() {
     setLoading(true);
     setError('');
 
-    const res = await createGuestAction(formData);
+    const sanitizeData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, value === '' ? null : value])
+    );
+
+    const res = await createGuestAction(sanitizeData);
     
     if (res.success) {
       router.push('/dashboard/guests');

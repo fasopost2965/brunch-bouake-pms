@@ -3,8 +3,13 @@
   border-radius: 16px;
   padding: var(--space-4);
   box-shadow: var(--shadow-soft);
-  transition: all 200ms ease;
+  transition: all 0.2s ease-in-out;
   border: 1px solid transparent;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
 }
 
 .interactive {

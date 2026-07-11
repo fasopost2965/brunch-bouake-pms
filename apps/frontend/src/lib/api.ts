@@ -24,7 +24,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
     headers: {
       ...options.headers,
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+      ...(!(options.body instanceof FormData) && { 'Content-Type': 'application/json' }),
     },
     // Prevent caching for real-time dashboard data
     cache: 'no-store',

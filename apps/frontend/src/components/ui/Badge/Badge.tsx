@@ -5,7 +5,8 @@ export type BadgeStatus =
   | 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'NO_SHOW'
   | 'VACANT' | 'OCCUPIED'
   | 'CLEAN' | 'INSPECTION' | 'DIRTY'
-  | 'OPERATIONAL' | 'MAINTENANCE';
+  | 'OPERATIONAL' | 'MAINTENANCE'
+  | 'OPEN' | 'CLOSED' | 'MAIN' | 'ADJUSTMENT' | 'NEUTRAL';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status: BadgeStatus;
@@ -57,6 +58,13 @@ const statusMapping: Record<BadgeStatus, string> = {
   // Technique
   OPERATIONAL: styles.success,
   MAINTENANCE: styles.error,
+
+  // Folios
+  OPEN: styles.success,
+  CLOSED: styles.neutral,
+  MAIN: styles.info,
+  ADJUSTMENT: styles.warning,
+  NEUTRAL: styles.neutral,
 };
 
 export function Badge({ status, label, className, ...props }: BadgeProps) {

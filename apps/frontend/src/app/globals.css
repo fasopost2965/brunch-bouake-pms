@@ -140,3 +140,20 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+/* ── Skeletons ── */
+@keyframes skeletonPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.skeleton-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+.skeleton-pulse * {
+  visibility: hidden;
+}

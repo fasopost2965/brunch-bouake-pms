@@ -4,6 +4,7 @@ import * as jose from 'jose';
 import { fetchWithAuth } from '@/lib/api';
 import ReservationDetailClient from './ReservationDetailClient';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function ReservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -50,7 +51,10 @@ export default async function ReservationDetailPage({ params }: { params: Promis
           Détail de la réservation #{reservation.id}
         </h1>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          Client: {reservation.guest?.firstName} {reservation.guest?.lastName}
+          Client:{' '}
+          <Link href={`/dashboard/guests/${reservation.guest?.id}`} style={{ color: 'var(--color-brand-gold)', textDecoration: 'none', fontWeight: 500 }}>
+            {reservation.guest?.firstName} {reservation.guest?.lastName}
+          </Link>
         </p>
       </header>
 

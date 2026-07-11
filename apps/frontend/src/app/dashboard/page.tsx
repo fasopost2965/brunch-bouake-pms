@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Badge } from '@/components/ui';
 import { fetchWithAuth } from '@/lib/api';
+import DashboardChartsClient from './DashboardChartsClient';
 import styles from './DashboardPage.module.css';
 
 // Type definitions based on backend
@@ -94,6 +95,9 @@ export default async function DashboardPage() {
           </div>
         </Card>
       </section>
+
+      {/* KPI Charts */}
+      <DashboardChartsClient reservations={reservations} />
 
       {/* Main Content Grid */}
       <div className={styles.sectionGrid}>

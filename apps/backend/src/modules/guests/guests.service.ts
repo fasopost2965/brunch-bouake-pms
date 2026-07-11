@@ -18,7 +18,18 @@ export class GuestsService {
   async getGuestById(id: number) {
     const guest = await this.prisma.guest.findUnique({
       where: { id },
-      include: { documents: true, reservations: true },
+      include: { 
+        documents: true, 
+        reservations: {
+          include: {
+            folios: {
+              include: {
+                lines: true
+              }
+            }
+          }
+        } 
+      },
     });
     if (!guest) throw new NotFoundException('Guest not found');
     return guest;

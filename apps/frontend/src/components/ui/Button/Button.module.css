@@ -110,3 +110,10 @@
   background-color: #E7DED2;
   color: var(--color-text-secondary);
 }
+
+/* Modificateur de taille */
+.small {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  border-radius: 8px;
+}

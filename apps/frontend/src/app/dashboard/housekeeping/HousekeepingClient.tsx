@@ -282,7 +282,7 @@ export default function HousekeepingClient({
 
                 {canWrite && (
                   <div className={styles.taskActions}>
-                    <Button onClick={() => handleUpdateStatus(task, 'IN_PROGRESS')} variant="tertiary" style={{ width: '100%', padding: '6px 12px', fontSize: '0.8125rem' }}>
+                    <Button onClick={() => handleUpdateStatus(task, 'IN_PROGRESS')} variant="tertiary" size="small" style={{ width: '100%' }}>
                       Démarrer
                     </Button>
                   </div>
@@ -318,10 +318,10 @@ export default function HousekeepingClient({
 
                 {canWrite && (
                   <div className={styles.taskActions}>
-                    <Button onClick={() => handleUpdateStatus(task, 'TODO')} variant="tertiary" style={{ flex: 1, padding: '6px 12px', fontSize: '0.8125rem' }}>
+                    <Button onClick={() => handleUpdateStatus(task, 'TODO')} variant="tertiary" size="small" style={{ flex: 1 }}>
                       Pause
                     </Button>
-                    <Button onClick={() => handleUpdateStatus(task, 'DONE')} variant="primary" style={{ flex: 1, padding: '6px 12px', fontSize: '0.8125rem' }}>
+                    <Button onClick={() => handleUpdateStatus(task, 'DONE')} variant="primary" size="small" style={{ flex: 1 }}>
                       Terminer
                     </Button>
                   </div>

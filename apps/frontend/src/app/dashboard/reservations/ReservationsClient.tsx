@@ -12,7 +12,7 @@ type Reservation = {
   checkInDate: string;
   checkOutDate: string;
   room?: { number: string };
-  guest: { firstName: string; lastName: string };
+  guest: { id: number; firstName: string; lastName: string };
 };
 
 export default function ReservationsClient({ 
@@ -98,7 +98,11 @@ export default function ReservationsClient({
             {initialReservations.map((res) => (
               <tr key={res.id}>
                 <td>
-                  <div className={styles.guestName}>{res.guest.firstName} {res.guest.lastName}</div>
+                  <Link href={`/dashboard/guests/${res.guest.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div className={styles.guestName} style={{ cursor: 'pointer' }}>
+                      {res.guest.firstName} {res.guest.lastName}
+                    </div>
+                  </Link>
                 </td>
                 <td>{res.room?.number || 'Non assignée'}</td>
                 <td>{new Date(res.checkInDate).toLocaleDateString('fr-FR')}</td>

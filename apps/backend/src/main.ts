@@ -3,10 +3,17 @@
 // ============================================
 
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Global validation pipe for DTOs and @Transform
+  app.useGlobalPipes(new ValidationPipe({ 
+    transform: true, 
+    whitelist: true 
+  }));
 
   // Global prefix for all API routes
   app.setGlobalPrefix('api');
